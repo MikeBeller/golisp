@@ -4,49 +4,59 @@ import "fmt"
 
 var _ = fmt.Printf
 
-type Type int
 type Value interface {
-	Type() Type
+	IsType()
 }
-
-const (
-	NIL Type = iota
-	NUMBER
-	SYMBOL
-	CONS
-)
 
 type Nil struct{}
 type Number int
 type Symbol string
-type Cons struct {
-	car Value
-	cdr Value
+type Pair struct {
+	a Value
+	b Value
 }
-
-func (Nil) Type() Type    { return NIL }
-func (Number) Type() Type { return NUMBER }
-func (Symbol) Type() Type { return SYMBOL }
-func (Cons) Type() Type   { return CONS }
-
-func cons(car Value, cdr Value) Cons {
-	return Cons{car, cdr}
-}
-
-func car(c Cons) Value {
-	return c.car
-}
-
-func cdr(c Cons) Value {
-	return c.cdr
-}
-
 type SymTab map[Symbol]Value
-type Environment []SymTab
+
+func (Nil) IsType()    {}
+func (Number) IsType() {}
+func (Symbol) IsType() {}
+func (Pair) IsType()   {}
+func (SymTab) IsType() {}
+
+var NIL = Nil(struct{}{})
+
+type List interface {
+	IsList()
+}
+
+func (Nil) IsList()  {}
+func (Pair) IsList() {}
+
+func cons(car Value, cdr Value) Pair {
+	return Pair{car, cdr}
+}
+
+func car(p Pair) Value {
+	return p.a
+}
+
+func cdr(p Pair) Value {
+	return p.b
+}
+
+func list(vs ...Value) List {
+	ls := NIL
+	for i := len(vs) - 1; i >= 0; i-- {
+		ls = cons(vs[i], ls)
+	}
+	return ls
+}
+
+type Environment List
 
 func NewEnvironment() Environment {
-	st := make(map[Symbol]Value)
-	return []SymTab{st}
+	st := SymTab(make(map[Symbol]Value))
+	return list(Value(st))
 }
 
 func (e Environment) Set(s Symbol, v Value) {
@@ -54,19 +64,26 @@ func (e Environment) Set(s Symbol, v Value) {
 }
 
 func Lookup(s Symbol, e Environment) Value {
-	for i := len(e) - 1; i >= 0; i-- {
-		if v, ok := e[i][s]; ok {
-			return v
+	l := e
+	for {
+		switch l.(type) {
+		case Nil:
+			panic("lookup nil")
+		case Pair:
+			st := l.a.(SymTab)
+			if v, ok := st[s]; ok {
+				return v
+			}
 		}
 	}
-	panic("lookup")
+	panic("lookup wtf?")
 }
 
 func Eval(val Value, env Environment) Value {
-	switch val.Type() {
-	case NUMBER:
+	switch val.(type) {
+	case Number:
 		return val
-	case SYMBOL:
+	case Symbol:
 		return Lookup(val.(Symbol), env)
 	default:
 		panic("type")
