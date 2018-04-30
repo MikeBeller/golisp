@@ -44,10 +44,21 @@ func cdr(p Pair) Value {
 	return p.b
 }
 
+func listVal(ls List) Value {
+	switch p := ls.(type) {
+	case Nil:
+		return NIL
+	case Pair:
+		return p
+	default:
+		panic("invalid list")
+	}
+}
+
 func list(vs ...Value) List {
-	ls := NIL
+	ls := List(NIL)
 	for i := len(vs) - 1; i >= 0; i-- {
-		ls = cons(vs[i], ls)
+		ls = cons(vs[i], listVal(ls))
 	}
 	return ls
 }
@@ -59,18 +70,24 @@ func NewEnvironment() Environment {
 	return list(Value(st))
 }
 
-func (e Environment) Set(s Symbol, v Value) {
-	e[0][s] = v
+func Set(e Environment, s Symbol, v Value) {
+	switch p := e.(type) {
+	case Nil:
+		panic("set empty environment")
+	case Pair:
+		st := car(p).(SymTab)
+		st[s] = v
+	}
 }
 
 func Lookup(s Symbol, e Environment) Value {
 	l := e
 	for {
-		switch l.(type) {
+		switch p := l.(type) {
 		case Nil:
 			panic("lookup nil")
 		case Pair:
-			st := l.a.(SymTab)
+			st := p.a.(SymTab)
 			if v, ok := st[s]; ok {
 				return v
 			}

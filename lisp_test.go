@@ -5,12 +5,12 @@ import (
 )
 
 func TestList(t *testing.T) {
-	l := cons(Value(Number(7)), Nil{})
+	l := cons(Value(Number(7)), NIL)
 	if car(l) != Value(Number(7)) {
 		t.Error("car failed")
 	}
 
-	if cdr(l) != (Nil{}) {
+	if cdr(l) != NIL {
 		t.Error("cdr failed")
 	}
 }
@@ -21,7 +21,7 @@ func TestEval(t *testing.T) {
 		t.Error("Eval number failed")
 	}
 
-	env.Set("FOO", Number(7))
+	Set(env, "FOO", Number(7))
 	if Eval(Symbol("FOO"), env) != Value(Number(7)) {
 		t.Error("Eval basic lookup")
 	}
