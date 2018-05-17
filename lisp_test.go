@@ -23,6 +23,6 @@ func TestEval(t *testing.T) {
 
 	Set(env, "FOO", Number(7))
 	if Eval(Symbol("FOO"), env) != Value(Number(7)) {
-		t.Error("Eval basic lookup")
+		t.Error("Eval basic lookup got", Eval(Symbol("FOO"), env))
 	}
 }

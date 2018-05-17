@@ -15,85 +15,66 @@ type Pair struct {
 	a Value
 	b Value
 }
-type SymTab map[Symbol]Value
 
 func (Nil) IsType()    {}
 func (Number) IsType() {}
 func (Symbol) IsType() {}
 func (Pair) IsType()   {}
-func (SymTab) IsType() {}
 
 var NIL = Nil(struct{}{})
-
-type List interface {
-	IsList()
-}
-
-func (Nil) IsList()  {}
-func (Pair) IsList() {}
 
 func cons(car Value, cdr Value) Pair {
 	return Pair{car, cdr}
 }
 
-func car(p Pair) Value {
-	return p.a
-}
-
-func cdr(p Pair) Value {
-	return p.b
-}
-
-func listVal(ls List) Value {
-	switch p := ls.(type) {
-	case Nil:
-		return NIL
+func car(v Value) Value {
+	switch p := v.(type) {
 	case Pair:
-		return p
+		return p.a
 	default:
-		panic("invalid list")
+		panic("car")
 	}
 }
 
-func list(vs ...Value) List {
-	ls := List(NIL)
+func cdr(v Value) Value {
+	switch p := v.(type) {
+	case Pair:
+		return p.b
+	default:
+		panic("car")
+	}
+}
+
+func list(vs ...Value) Value {
+	var ls Value = NIL
 	for i := len(vs) - 1; i >= 0; i-- {
-		ls = cons(vs[i], listVal(ls))
+		ls = cons(vs[i], ls)
 	}
 	return ls
 }
 
-type Environment List
+type Environment Value
 
 func NewEnvironment() Environment {
-	st := SymTab(make(map[Symbol]Value))
-	return list(Value(st))
+	return NIL
 }
 
 func Set(e Environment, s Symbol, v Value) {
-	switch p := e.(type) {
-	case Nil:
-		panic("set empty environment")
-	case Pair:
-		st := car(p).(SymTab)
-		st[s] = v
-	}
+	cons(Pair{s,v}, e)
+
 }
 
 func Lookup(s Symbol, e Environment) Value {
-	l := e
-	for {
-		switch p := l.(type) {
-		case Nil:
-			panic("lookup nil")
-		case Pair:
-			st := p.a.(SymTab)
-			if v, ok := st[s]; ok {
-				return v
-			}
+	if e == NIL {
+		return NIL
+	} else {
+		p := car(e).(Pair)
+		if p.a == s {
+			return cdr(e)
+		} else {
+			return Lookup(s, cdr(e))
 		}
 	}
-	panic("lookup wtf?")
 }
 
 func Eval(val Value, env Environment) Value {
