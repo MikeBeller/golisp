@@ -21,8 +21,8 @@ func TestEval(t *testing.T) {
 		t.Error("Eval number failed")
 	}
 
-	Set(env, "FOO", Number(7))
+	env = Set(env, "FOO", Number(7))
 	if Eval(Symbol("FOO"), env) != Value(Number(7)) {
-		t.Error("Eval basic lookup got", Eval(Symbol("FOO"), env))
+		t.Error("Eval basic lookup got", Eval(Symbol("FOO"), env), env)
 	}
 }

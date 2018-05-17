@@ -59,8 +59,8 @@ func NewEnvironment() Environment {
 	return NIL
 }
 
-func Set(e Environment, s Symbol, v Value) {
-	cons(Pair{s,v}, e)
+func Set(e Environment, s Symbol, v Value) Value {
+	return cons(Pair{s,v}, e)
 
 }
 
@@ -70,7 +70,7 @@ func Lookup(s Symbol, e Environment) Value {
 	} else {
 		p := car(e).(Pair)
 		if p.a == s {
-			return cdr(e)
+			return p.b
 		} else {
 			return Lookup(s, cdr(e))
 		}
