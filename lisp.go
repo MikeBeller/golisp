@@ -23,8 +23,34 @@ func (Pair) IsType()   {}
 
 var NIL = Nil(struct{}{})
 
-func cons(car Value, cdr Value) Pair {
-	return Pair{car, cdr}
+/*
+ * Basic primitives of lisp are:
+ *  quote, atom, eq, car, cdr, cons, cond
+ *
+ * We implement cond using switch/if in go.
+ */
+
+func quote(v Value) Value {
+	return v
+}
+
+func atom(v Value) bool {
+	switch v.(type) {
+	case Pair:
+		return false
+	default:
+		return true
+	}
+}
+
+func eq(a, b Value) bool {
+	if a == NIL && b == NIL {
+		return true
+	}
+	if atom(a) && atom(b) && a == b {
+		return true
+	}
+	return false
 }
 
 func car(v Value) Value {
@@ -45,6 +71,18 @@ func cdr(v Value) Value {
 	}
 }
 
+/* Convenience functions of car/cdr */
+func caar(v Value) Value   { return car(car(v)) }
+func cadr(v Value) Value   { return car(cdr(v)) }
+func cadar(v Value) Value  { return car(cdr(car(v))) }
+func caddr(v Value) Value  { return car(cdr(cdr(v))) }
+func caddar(v Value) Value { return car(cdr(cdr(car(v)))) }
+
+func cons(a Value, d Value) Pair {
+	return Pair{a, d}
+}
+
+/* Convenience function for creating lists */
 func list(vs ...Value) Value {
 	var ls Value = NIL
 	for i := len(vs) - 1; i >= 0; i-- {
@@ -53,37 +91,11 @@ func list(vs ...Value) Value {
 	return ls
 }
 
-type Environment Value
-
-func NewEnvironment() Environment {
-	return NIL
-}
-
-func Set(e Environment, s Symbol, v Value) Value {
-	return cons(Pair{s,v}, e)
-
-}
-
-func Lookup(s Symbol, e Environment) Value {
-	if e == NIL {
-		return NIL
+/* This is a recreation of the McCarthy assoc -- panics if k is not found */
+func assoc(k, ps Value) Value {
+	if eq(caar(ps), k) {
+		return cadar(ps)
 	} else {
-		p := car(e).(Pair)
-		if p.a == s {
-			return p.b
-		} else {
-			return Lookup(s, cdr(e))
-		}
-	}
-}
-
-func Eval(val Value, env Environment) Value {
-	switch val.(type) {
-	case Number:
-		return val
-	case Symbol:
-		return Lookup(val.(Symbol), env)
-	default:
-		panic("type")
+		return assoc(k, cdr(ps))
 	}
 }
