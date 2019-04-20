@@ -225,12 +225,8 @@ func TestEvalQuote(t *testing.T) {
 	}
 }
 
-/*
 func TestEvalAtom(t *testing.T) {
 	if eval(list(S("atom"), quote(v2)), env) != TRUE {
 		t.Error("eval 'atom of atom")
 	}
-	if eval(list(S("atom"), quote(list(v1, v2))), env) != NIL {
-		t.Error("eval 'atom of list")
-	}
-} */
+}
