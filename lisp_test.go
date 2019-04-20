@@ -27,31 +27,29 @@ func TestQuote(t *testing.T) {
 
 func TestAtom(t *testing.T) {
 	for _, p := range []struct {
-		Value
-		bool
-	}{{NIL, true},
-		{Number(3), true},
-		{Symbol("FOO"), true},
-		{Pair{NIL, NIL}, false}} {
-		if atom(p.Value) != p.bool {
-			t.Error("atom:", p.Value)
+		a, b Value
+	}{{NIL, TRUE},
+		{Number(3), TRUE},
+		{Symbol("FOO"), TRUE},
+		{Pair{NIL, NIL}, NIL}} {
+		if atom(p.a) != p.b {
+			t.Error("atom:", p.a)
 		}
 	}
 }
 
 func TestEq(t *testing.T) {
 	for _, p := range []struct {
-		a, b Value
-		bool
-	}{{NIL, NIL, true},
-		{NIL, Number(3), false},
-		{Number(3), Number(3), true},
-		{Number(3), Number(4), false},
-		{Symbol("FOO"), Symbol("FOO"), true},
-		{Pair{NIL, NIL}, Pair{NIL, NIL}, false},
-		{Pair{NIL, NIL}, Symbol("FOO"), false},
+		a, b, c Value
+	}{{NIL, NIL, TRUE},
+		{NIL, Number(3), NIL},
+		{Number(3), Number(3), TRUE},
+		{Number(3), Number(4), NIL},
+		{Symbol("FOO"), Symbol("FOO"), TRUE},
+		{Pair{NIL, NIL}, Pair{NIL, NIL}, NIL},
+		{Pair{NIL, NIL}, Symbol("FOO"), NIL},
 	} {
-		if eq(p.a, p.b) != p.bool {
+		if eq(p.a, p.b) != p.c {
 			t.Error("eq failed:", p.a, p.b)
 		}
 	}
@@ -177,17 +175,62 @@ func TestAssocInvalid(t *testing.T) {
 func TestAssoc(t *testing.T) {
 	al := list(list(v1, v2), list(v3, v4), list(v5, v6))
 	if assoc(v1, al) != v2 {
-		t.Errorf("assoc1")
+		t.Error("assoc1")
 	}
 	if assoc(v3, al) != v4 {
-		t.Errorf("assoc2")
+		t.Error("assoc2")
 	}
 	al = cons(list(v3, v6), al)
 	if assoc(v3, al) != v6 {
-		t.Errorf("assoc3")
+		t.Error("assoc3")
 	}
 	al = cdr(al)
 	if assoc(v3, al) != v4 {
-		t.Errorf("assoc4")
+		t.Error("assoc4")
 	}
 }
+
+func TestAppend(t *testing.T) {
+	if append(NIL, NIL) != NIL {
+		t.Error("append NIL NIL")
+	}
+	if append(NIL, list(v1, v2)) != list(v1, v2) {
+		t.Error("append NIL list")
+	}
+	if append(list(v1, v2), list(v3, v4)) != list(v1, v2, v3, v4) {
+		t.Error("append 4 items")
+	}
+}
+
+func TestPair(t *testing.T) {
+	if pair(NIL, NIL) != NIL {
+		t.Error("pair nil nil")
+	}
+	if pair(list(v1, v2), list(v3, v4)) != list(list(v1, v3), list(v2, v4)) {
+		t.Error("pair normal")
+	}
+}
+
+var env Value = list(list(v1, v2), list(v3, v4))
+
+func TestEvalAnAtom(t *testing.T) {
+	if eval(v1, env) != v2 {
+		t.Error("eval an atom")
+	}
+}
+
+func TestEvalQuote(t *testing.T) {
+	if eval(list(S("quote"), v2), env) != v2 {
+		t.Error("eval 'quote")
+	}
+}
+
+/*
+func TestEvalAtom(t *testing.T) {
+	if eval(list(S("atom"), quote(v2)), env) != TRUE {
+		t.Error("eval 'atom of atom")
+	}
+	if eval(list(S("atom"), quote(list(v1, v2))), env) != NIL {
+		t.Error("eval 'atom of list")
+	}
+} */
