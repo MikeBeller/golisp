@@ -251,4 +251,10 @@ func TestRead(t *testing.T) {
 	if readStr("(FOO (BAR BAZ) BEE)") != list(S("FOO"), list(S("BAR"), S("BAZ")), S("BEE")) {
 		t.Error("read nested list")
 	}
+	if readStr("'FOO") != list(S("quote"), S("FOO")) {
+		t.Error("quoted symbol")
+	}
+	if readStr("'(A B)") != list(S("quote"), list(S("A"), S("B"))) {
+		t.Error("quoted list")
+	}
 }

@@ -262,6 +262,8 @@ func read(rdr io.ByteScanner) Value {
 			return reverse(readList(rdr))
 		} else if c == ' ' {
 			continue
+		} else if c == '\'' {
+			return list(Symbol("quote"), read(rdr))
 		} else {
 			rdr.UnreadByte()
 			return readSym(rdr)
