@@ -1,6 +1,10 @@
 package golisp
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+	"strings"
+)
 
 var _ = fmt.Printf
 
@@ -8,25 +12,21 @@ type Value interface {
 	IsType()
 }
 
+//type Number int
 type Nil struct{}
-type Number int
 type Symbol string
 type Pair struct {
 	a Value
 	b Value
 }
 
+//func (Number) IsType() {}
 func (Nil) IsType()    {}
-func (Number) IsType() {}
 func (Symbol) IsType() {}
 func (Pair) IsType()   {}
 
 var NIL = Nil(struct{}{})
 var TRUE = Symbol("t")
-
-func S(s string) Value {
-	return Symbol(s)
-}
 
 /*
  * Basic primitives of lisp are:
@@ -102,6 +102,9 @@ func list(vs ...Value) Value {
 
 /* This is a recreation of the McCarthy assoc -- panics if k is not found */
 func assoc(k, ps Value) Value {
+	if ps == NIL {
+		panic(fmt.Sprint("assoc:", k, ps))
+	}
 	if isTrue(eq(caar(ps), k)) {
 		return cadar(ps)
 	} else {
@@ -180,7 +183,7 @@ func eval(e, a Value) Value {
 	} else if isTrue(eq(caar(e), Symbol("lambda"))) {
 		return eval(caddar(e), append(pair(cadar(e), evlis(cdr(e), a)), a))
 	}
-	panic("wtf?")
+	panic(fmt.Sprint("eval: invalid construct:", e))
 }
 
 func evcon(c, a Value) Value {
@@ -197,4 +200,75 @@ func evlis(m, a Value) Value {
 	} else {
 		return cons(eval(car(m), a), evlis(cdr(m), a))
 	}
+}
+
+func readSym(rdr io.ByteScanner) Value {
+	var b strings.Builder
+	for {
+		c, err := rdr.ReadByte()
+		//fmt.Println("readSym", c, err)
+		if err != nil {
+			break
+		}
+		if c == ' ' {
+			break
+		}
+		if c == ')' {
+			rdr.UnreadByte()
+			break
+		}
+		b.WriteByte(c)
+	}
+	return Symbol(b.String())
+}
+
+func readList(rdr io.ByteScanner) Value {
+	var r Value = NIL
+	for {
+		c, err := rdr.ReadByte()
+		//fmt.Println("readList", c, err)
+		if err != nil {
+			panic("readList")
+		}
+		if c == ')' {
+			return r
+		}
+		if c == ' ' {
+			continue
+		}
+		rdr.UnreadByte()
+		v := read(rdr)
+		r = cons(v, r)
+	}
+}
+
+func reverse(l Value) Value {
+	var r Value = NIL
+	for l != NIL {
+		r = cons(car(l), r)
+		l = cdr(l)
+	}
+	return r
+}
+
+func read(rdr io.ByteScanner) Value {
+	for {
+		c, err := rdr.ReadByte()
+		//fmt.Println("read", c, err)
+		if err != nil {
+			panic("read")
+		}
+		if c == '(' {
+			return reverse(readList(rdr))
+		} else if c == ' ' {
+			continue
+		} else {
+			rdr.UnreadByte()
+			return readSym(rdr)
+		}
+	}
+}
+
+func readStr(s string) Value {
+	return read(strings.NewReader(s))
 }

@@ -7,20 +7,24 @@ import (
 
 var _ = fmt.Println
 
-var v1 Value = Number(1)
-var v2 Value = Number(2)
-var v3 Value = Number(3)
-var v4 Value = Number(4)
-var v5 Value = Number(5)
-var v6 Value = Number(6)
+var v1 Value = Symbol("A")
+var v2 Value = Symbol("B")
+var v3 Value = Symbol("C")
+var v4 Value = Symbol("D")
+var v5 Value = Symbol("E")
+var v6 Value = Symbol("F")
+
+func S(s string) Value {
+	return Symbol(s)
+}
 
 func TestQuote(t *testing.T) {
-	for _, v := range []Value{NIL, Number(3), Symbol("FOO")} {
+	for _, v := range []Value{NIL, v3, Symbol("FOO")} {
 		if quote(v) != v {
 			t.Error("quote:", v)
 		}
 	}
-	if quote(Number(3)) != Number(3) {
+	if quote(v3) != v3 {
 		t.Error("quote outright")
 	}
 }
@@ -29,7 +33,7 @@ func TestAtom(t *testing.T) {
 	for _, p := range []struct {
 		a, b Value
 	}{{NIL, TRUE},
-		{Number(3), TRUE},
+		{v3, TRUE},
 		{Symbol("FOO"), TRUE},
 		{Pair{NIL, NIL}, NIL}} {
 		if atom(p.a) != p.b {
@@ -42,9 +46,9 @@ func TestEq(t *testing.T) {
 	for _, p := range []struct {
 		a, b, c Value
 	}{{NIL, NIL, TRUE},
-		{NIL, Number(3), NIL},
-		{Number(3), Number(3), TRUE},
-		{Number(3), Number(4), NIL},
+		{NIL, v3, NIL},
+		{v3, v3, TRUE},
+		{v3, v4, NIL},
 		{Symbol("FOO"), Symbol("FOO"), TRUE},
 		{Pair{NIL, NIL}, Pair{NIL, NIL}, NIL},
 		{Pair{NIL, NIL}, Symbol("FOO"), NIL},
@@ -72,7 +76,7 @@ func TestCarInvalidValue(t *testing.T) {
 		}
 	}()
 
-	car(Number(3))
+	car(v3)
 }
 
 func TestCarNil(t *testing.T) {
@@ -105,7 +109,7 @@ func TestCdrInvalidValue(t *testing.T) {
 		}
 	}()
 
-	cdr(Number(3))
+	cdr(v3)
 }
 
 func TestCdrNil(t *testing.T) {
@@ -169,7 +173,7 @@ func TestAssocInvalid(t *testing.T) {
 	}()
 
 	al := list(list(v1, v2), list(v3, v4), list(v5, v6))
-	assoc(Number(7), al)
+	assoc(Symbol("FOO"), al)
 }
 
 func TestAssoc(t *testing.T) {
@@ -228,5 +232,23 @@ func TestEvalQuote(t *testing.T) {
 func TestEvalAtom(t *testing.T) {
 	if eval(list(S("atom"), list(S("quote"), v2)), env) != TRUE {
 		t.Error("eval 'atom of atom")
+	}
+}
+
+func TestRead(t *testing.T) {
+	if readStr("FOO") != Symbol("FOO") {
+		t.Error("read FOO")
+	}
+	if readStr(" FOO ") != Symbol("FOO") {
+		t.Error("read FOO")
+	}
+	if readStr("(FOO BAR)") != list(S("FOO"), S("BAR")) {
+		t.Error("read (FOO BAR)")
+	}
+	if readStr("(FOO BAR BAZ)") != list(S("FOO"), S("BAR"), S("BAZ")) {
+		t.Error("read (FOO BAR BAZ)")
+	}
+	if readStr("(FOO (BAR BAZ) BEE)") != list(S("FOO"), list(S("BAR"), S("BAZ")), S("BEE")) {
+		t.Error("read nested list")
 	}
 }
