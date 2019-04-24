@@ -235,6 +235,12 @@ func TestEvalAtom(t *testing.T) {
 	}
 }
 
+func TestEvalNumber(t *testing.T) {
+	if eval(Number(5), NIL) != Number(5) {
+		t.Error("eval number")
+	}
+}
+
 func TestRead(t *testing.T) {
 	if readStr("FOO") != Symbol("FOO") {
 		t.Error("read FOO")

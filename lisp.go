@@ -198,7 +198,12 @@ func pair(x, y Value) Value {
 /* Eval -- the core lisp interpretation function */
 func eval(e, a Value) Value {
 	if isTrue(atom(e)) {
-		return assoc(e, a)
+		switch e.(type) {
+		case Number:
+			return e
+		default:
+			return assoc(e, a)
+		}
 	} else if isTrue(atom(car(e))) {
 		if isTrue(eq(car(e), Symbol("quote"))) {
 			return cadr(e)
@@ -256,7 +261,7 @@ func readSym(rdr io.ByteScanner) Value {
 		if err != nil {
 			break
 		}
-		if c == ' ' {
+		if c == ' ' || c == '\n' {
 			break
 		}
 		if c == ')' {
@@ -288,7 +293,7 @@ func readNum(rdr io.ByteScanner) Value {
 		if err != nil {
 			break
 		}
-		if c == ' ' {
+		if c == ' ' || c == '\n' {
 			break
 		}
 		if c == ')' {
@@ -327,7 +332,7 @@ func readList(rdr io.ByteScanner) Value {
 		if c == ')' {
 			return r
 		}
-		if c == ' ' {
+		if c == ' ' || c == '\n' {
 			continue
 		}
 		rdr.UnreadByte()
@@ -354,7 +359,7 @@ func read(rdr io.ByteScanner) Value {
 		}
 		if c == '(' {
 			return reverse(readList(rdr))
-		} else if c == ' ' {
+		} else if c == ' ' || c == '\n' {
 			continue
 		} else if c == '\'' {
 			return list(Symbol("quote"), read(rdr))
