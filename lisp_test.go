@@ -248,7 +248,7 @@ func TestRead(t *testing.T) {
 	if readStr("(FOO BAR BAZ)") != list(S("FOO"), S("BAR"), S("BAZ")) {
 		t.Error("read (FOO BAR BAZ)")
 	}
-	if readStr("(FOO (BAR BAZ) BEE)") != list(S("FOO"), list(S("BAR"), S("BAZ")), S("BEE")) {
+	if readStr("(FOO (BAR 37) BEE)") != list(S("FOO"), list(S("BAR"), Number(37)), S("BEE")) {
 		t.Error("read nested list")
 	}
 	if readStr("'FOO") != list(S("quote"), S("FOO")) {
@@ -256,5 +256,23 @@ func TestRead(t *testing.T) {
 	}
 	if readStr("'(A B)") != list(S("quote"), list(S("A"), S("B"))) {
 		t.Error("quoted list")
+	}
+	if readStr("234") != Number(234) {
+		t.Error("Read number")
+	}
+	if readStr("-234") != Number(-234) {
+		t.Error("Read negative number")
+	}
+}
+
+func TestArithmetic(t *testing.T) {
+	if eval(list(S("add"), Number(3), Number(5)), env) != Number(8) {
+		t.Error("add 3 5")
+	}
+	if eval(list(S("sub"), Number(3), Number(5)), env) != Number(-2) {
+		t.Error("sub 3 5")
+	}
+	if eval(list(S("lt"), Number(3), Number(5)), env) != TRUE {
+		t.Error("lt 3 5")
 	}
 }

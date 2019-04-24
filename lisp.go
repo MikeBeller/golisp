@@ -15,6 +15,7 @@ type Value interface {
 //type Number int
 type Nil struct{}
 type Symbol string
+type Number int
 type Pair struct {
 	a Value
 	b Value
@@ -23,6 +24,7 @@ type Pair struct {
 //func (Number) IsType() {}
 func (Nil) IsType()    {}
 func (Symbol) IsType() {}
+func (Number) IsType() {}
 func (Pair) IsType()   {}
 
 var NIL = Nil(struct{}{})
@@ -137,6 +139,44 @@ func not(x Value) Value {
 	}
 }
 
+func add(x, y Value) Value {
+	xn, ok := x.(Number)
+	if !ok {
+		panic(fmt.Sprint("Invalid number in add:", x))
+	}
+	yn, ok := y.(Number)
+	if !ok {
+		panic(fmt.Sprint("Invalid number in add:", y))
+	}
+	return Number(xn + yn)
+}
+func sub(x, y Value) Value {
+	xn, ok := x.(Number)
+	if !ok {
+		panic(fmt.Sprint("Invalid number in add:", x))
+	}
+	yn, ok := y.(Number)
+	if !ok {
+		panic(fmt.Sprint("Invalid number in add:", y))
+	}
+	return Number(xn - yn)
+}
+func lt(x, y Value) Value {
+	xn, ok := x.(Number)
+	if !ok {
+		panic(fmt.Sprint("Invalid number in add:", x))
+	}
+	yn, ok := y.(Number)
+	if !ok {
+		panic(fmt.Sprint("Invalid number in add:", y))
+	}
+	if xn < yn {
+		return TRUE
+	} else {
+		return NIL
+	}
+}
+
 func append(x, y Value) Value {
 	if isTrue(null(x)) {
 		return y
@@ -174,6 +214,12 @@ func eval(e, a Value) Value {
 			return cons(eval(cadr(e), a), eval(caddr(e), a))
 		} else if isTrue(eq(car(e), Symbol("cond"))) {
 			return evcon(cdr(e), a)
+		} else if isTrue(eq(car(e), Symbol("add"))) {
+			return add(cadr(e), caddr(e))
+		} else if isTrue(eq(car(e), Symbol("sub"))) {
+			return sub(cadr(e), caddr(e))
+		} else if isTrue(eq(car(e), Symbol("lt"))) {
+			return lt(cadr(e), caddr(e))
 		} else {
 			return eval(cons(assoc(car(e), a), cdr(e)), a)
 		}
@@ -222,6 +268,54 @@ func readSym(rdr io.ByteScanner) Value {
 	return Symbol(b.String())
 }
 
+func readNum(rdr io.ByteScanner) Value {
+	n := 0
+	negative := false
+	c, err := rdr.ReadByte()
+	if err != nil {
+		panic("unexpected EOF")
+	}
+	if c == '-' {
+		negative = true
+	} else {
+		rdr.UnreadByte()
+	}
+	ndig := 0
+
+	for {
+		c, err := rdr.ReadByte()
+		//fmt.Println("readNum", c, err)
+		if err != nil {
+			break
+		}
+		if c == ' ' {
+			break
+		}
+		if c == ')' {
+			rdr.UnreadByte()
+			break
+		}
+		if !isDig(c) {
+			panic(fmt.Sprint("Invalid digit in number", c))
+		}
+		n *= 10
+		n += int(c - 48)
+		ndig++
+	}
+	if ndig == 0 {
+		panic("No digits in number")
+	}
+	if negative {
+		return Number(-n)
+	} else {
+		return Number(n)
+	}
+}
+
+func isDig(c byte) bool {
+	return c >= 48 && c <= 57
+}
+
 func readList(rdr io.ByteScanner) Value {
 	var r Value = NIL
 	for {
@@ -264,6 +358,9 @@ func read(rdr io.ByteScanner) Value {
 			continue
 		} else if c == '\'' {
 			return list(Symbol("quote"), read(rdr))
+		} else if c == '-' || (c >= '0' && c <= '9') {
+			rdr.UnreadByte()
+			return readNum(rdr)
 		} else {
 			rdr.UnreadByte()
 			return readSym(rdr)
