@@ -281,4 +281,7 @@ func TestArithmetic(t *testing.T) {
 	if eval(list(S("lt"), Number(3), Number(5)), env) != TRUE {
 		t.Error("lt 3 5")
 	}
+	if eval(readStr("(add a b)"), readStr("((a 3) (b 5))")) != Number(8) {
+		t.Error("add a b")
+	}
 }

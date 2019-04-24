@@ -153,22 +153,22 @@ func add(x, y Value) Value {
 func sub(x, y Value) Value {
 	xn, ok := x.(Number)
 	if !ok {
-		panic(fmt.Sprint("Invalid number in add:", x))
+		panic(fmt.Sprint("Invalid number in sub:", x))
 	}
 	yn, ok := y.(Number)
 	if !ok {
-		panic(fmt.Sprint("Invalid number in add:", y))
+		panic(fmt.Sprint("Invalid number in sub:", y))
 	}
 	return Number(xn - yn)
 }
 func lt(x, y Value) Value {
 	xn, ok := x.(Number)
 	if !ok {
-		panic(fmt.Sprint("Invalid number in add:", x))
+		panic(fmt.Sprint("Invalid number in lt:", x))
 	}
 	yn, ok := y.(Number)
 	if !ok {
-		panic(fmt.Sprint("Invalid number in add:", y))
+		panic(fmt.Sprint("Invalid number in lt:", y))
 	}
 	if xn < yn {
 		return TRUE
@@ -220,11 +220,11 @@ func eval(e, a Value) Value {
 		} else if isTrue(eq(car(e), Symbol("cond"))) {
 			return evcon(cdr(e), a)
 		} else if isTrue(eq(car(e), Symbol("add"))) {
-			return add(cadr(e), caddr(e))
+			return add(eval(cadr(e), a), eval(caddr(e), a))
 		} else if isTrue(eq(car(e), Symbol("sub"))) {
-			return sub(cadr(e), caddr(e))
+			return sub(eval(cadr(e), a), eval(caddr(e), a))
 		} else if isTrue(eq(car(e), Symbol("lt"))) {
-			return lt(cadr(e), caddr(e))
+			return lt(eval(cadr(e), a), eval(caddr(e), a))
 		} else {
 			return eval(cons(assoc(car(e), a), cdr(e)), a)
 		}
