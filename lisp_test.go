@@ -269,6 +269,9 @@ func TestRead(t *testing.T) {
 	if readStr("-234") != Number(-234) {
 		t.Error("Read negative number")
 	}
+	if readStr("0") != Number(0) {
+		t.Error("Read 0")
+	}
 }
 
 func TestArithmetic(t *testing.T) {
@@ -283,5 +286,29 @@ func TestArithmetic(t *testing.T) {
 	}
 	if eval(readStr("(add a b)"), readStr("((a 3) (b 5))")) != Number(8) {
 		t.Error("add a b")
+	}
+}
+
+func TestWrite(t *testing.T) {
+	if toStr(readStr("3")) != "3" {
+		t.Error("write 3", toStr(readStr("3")))
+	}
+	if toStr(readStr("(FOO 3 (7 9))")) != "(FOO 3 (7 9))" {
+		t.Error("write list")
+	}
+}
+
+func TestLambdaProg(t *testing.T) {
+	prog := `(
+(f (lambda (n m)
+   (cond
+       ((eq n 0) m)
+       ( 't (f (sub n 1) (add m 2)))
+       )))
+(main (lambda () (f 10 0)))
+)`
+	r := eval(readStr("(main)"), readStr(prog))
+	if r != Number(20) {
+		t.Error("lambda prog")
 	}
 }

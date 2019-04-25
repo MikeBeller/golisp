@@ -197,6 +197,7 @@ func pair(x, y Value) Value {
 
 /* Eval -- the core lisp interpretation function */
 func eval(e, a Value) Value {
+	fmt.Println("EVAL:", toStr(e), toStr(a))
 	if isTrue(atom(e)) {
 		switch e.(type) {
 		case Number:
@@ -375,4 +376,37 @@ func read(rdr io.ByteScanner) Value {
 
 func readStr(s string) Value {
 	return read(strings.NewReader(s))
+}
+
+func writeList(w io.Writer, p Value) {
+	if p == NIL {
+		return
+	} else {
+		write(w, car(p))
+		if cdr(p) != NIL {
+			fmt.Fprint(w, " ")
+		}
+		writeList(w, cdr(p))
+	}
+}
+
+func write(w io.Writer, v Value) {
+	switch t := v.(type) {
+	case Pair:
+		fmt.Fprint(w, "(")
+		writeList(w, v)
+		fmt.Fprint(w, ")")
+	case Number:
+		fmt.Fprint(w, t)
+	case Symbol:
+		fmt.Fprint(w, t)
+	case Nil:
+		fmt.Fprint(w, "'()")
+	}
+}
+
+func toStr(v Value) string {
+	var b strings.Builder
+	write(&b, v)
+	return b.String()
 }
