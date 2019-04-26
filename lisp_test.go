@@ -274,6 +274,12 @@ func TestRead(t *testing.T) {
 	}
 }
 
+func TestReadSpace(t *testing.T) {
+	if readStr("(FOO\tBAR \t\n BAZ)") != list(S("FOO"), S("BAR"), S("BAZ")) {
+		t.Error("ReadSpace")
+	}
+}
+
 func TestArithmetic(t *testing.T) {
 	if eval(list(S("add"), Number(3), Number(5)), env) != Number(8) {
 		t.Error("add 3 5")

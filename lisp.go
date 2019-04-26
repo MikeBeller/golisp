@@ -262,7 +262,7 @@ func readSym(rdr io.ByteScanner) Value {
 		if err != nil {
 			break
 		}
-		if c == ' ' || c == '\n' {
+		if isWhiteSpace(c) {
 			break
 		}
 		if c == ')' {
@@ -272,6 +272,10 @@ func readSym(rdr io.ByteScanner) Value {
 		b.WriteByte(c)
 	}
 	return Symbol(b.String())
+}
+
+func isWhiteSpace(b byte) bool {
+	return b == ' ' || b == '\n' || b == '\t'
 }
 
 func readNum(rdr io.ByteScanner) Value {
@@ -294,7 +298,7 @@ func readNum(rdr io.ByteScanner) Value {
 		if err != nil {
 			break
 		}
-		if c == ' ' || c == '\n' {
+		if isWhiteSpace(c) {
 			break
 		}
 		if c == ')' {
@@ -333,7 +337,7 @@ func readList(rdr io.ByteScanner) Value {
 		if c == ')' {
 			return r
 		}
-		if c == ' ' || c == '\n' {
+		if isWhiteSpace(c) {
 			continue
 		}
 		rdr.UnreadByte()
@@ -360,7 +364,7 @@ func read(rdr io.ByteScanner) Value {
 		}
 		if c == '(' {
 			return reverse(readList(rdr))
-		} else if c == ' ' || c == '\n' {
+		} else if isWhiteSpace(c) {
 			continue
 		} else if c == '\'' {
 			return list(Symbol("quote"), read(rdr))
