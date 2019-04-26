@@ -303,12 +303,27 @@ func TestLambdaProg(t *testing.T) {
 (f (lambda (n m)
    (cond
        ((eq n 0) m)
-       ( 't (f (sub n 1) (add m 2)))
+       ('t (f (sub n 1) (add m 2)))
        )))
 (main (lambda () (f 10 0)))
 )`
 	r := eval(readStr("(main)"), readStr(prog))
 	if r != Number(20) {
 		t.Error("lambda prog")
+	}
+}
+
+func TestLambdaFib(t *testing.T) {
+	prog := `(
+(fib (lambda (a b n)
+   (cond
+       ((eq n 0) a)
+       ('t (fib b (add a b) (sub n 1) ))
+       )))
+(main (lambda () (fib 0 1 10)))
+)`
+	r := eval(readStr("(main)"), readStr(prog))
+	if r != Number(55) {
+		t.Error("lambda fib")
 	}
 }

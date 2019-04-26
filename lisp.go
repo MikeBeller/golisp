@@ -197,7 +197,7 @@ func pair(x, y Value) Value {
 
 /* Eval -- the core lisp interpretation function */
 func eval(e, a Value) Value {
-	fmt.Println("EVAL:", toStr(e), toStr(a))
+	//fmt.Println("EVAL:", toStr(e), "ENV:", toStr(a))
 	if isTrue(atom(e)) {
 		switch e.(type) {
 		case Number:
