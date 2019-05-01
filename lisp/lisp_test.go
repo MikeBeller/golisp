@@ -1,4 +1,4 @@
-package golisp
+package lisp
 
 import (
 	"fmt"
@@ -218,88 +218,88 @@ func TestPair(t *testing.T) {
 var env Value = list(list(v1, v2), list(v3, v4))
 
 func TestEvalAnAtom(t *testing.T) {
-	if eval(v1, env) != v2 {
-		t.Error("eval an atom")
+	if Eval(v1, env) != v2 {
+		t.Error("Eval an atom")
 	}
 }
 
 func TestEvalQuote(t *testing.T) {
-	if eval(list(S("quote"), v2), env) != v2 {
-		t.Error("eval 'quote")
+	if Eval(list(S("quote"), v2), env) != v2 {
+		t.Error("Eval 'quote")
 	}
 }
 
 func TestEvalAtom(t *testing.T) {
-	if eval(list(S("atom"), list(S("quote"), v2)), env) != TRUE {
-		t.Error("eval 'atom of atom")
+	if Eval(list(S("atom"), list(S("quote"), v2)), env) != TRUE {
+		t.Error("Eval 'atom of atom")
 	}
 }
 
 func TestEvalNumber(t *testing.T) {
-	if eval(Number(5), NIL) != Number(5) {
-		t.Error("eval number")
+	if Eval(Number(5), NIL) != Number(5) {
+		t.Error("Eval number")
 	}
 }
 
 func TestRead(t *testing.T) {
-	if readStr("FOO") != Symbol("FOO") {
+	if ReadStr("FOO") != Symbol("FOO") {
 		t.Error("read FOO")
 	}
-	if readStr(" FOO ") != Symbol("FOO") {
+	if ReadStr(" FOO ") != Symbol("FOO") {
 		t.Error("read FOO")
 	}
-	if readStr("(FOO BAR)") != list(S("FOO"), S("BAR")) {
+	if ReadStr("(FOO BAR)") != list(S("FOO"), S("BAR")) {
 		t.Error("read (FOO BAR)")
 	}
-	if readStr("(FOO BAR BAZ)") != list(S("FOO"), S("BAR"), S("BAZ")) {
+	if ReadStr("(FOO BAR BAZ)") != list(S("FOO"), S("BAR"), S("BAZ")) {
 		t.Error("read (FOO BAR BAZ)")
 	}
-	if readStr("(FOO (BAR 37) BEE)") != list(S("FOO"), list(S("BAR"), Number(37)), S("BEE")) {
+	if ReadStr("(FOO (BAR 37) BEE)") != list(S("FOO"), list(S("BAR"), Number(37)), S("BEE")) {
 		t.Error("read nested list")
 	}
-	if readStr("'FOO") != list(S("quote"), S("FOO")) {
+	if ReadStr("'FOO") != list(S("quote"), S("FOO")) {
 		t.Error("quoted symbol")
 	}
-	if readStr("'(A B)") != list(S("quote"), list(S("A"), S("B"))) {
+	if ReadStr("'(A B)") != list(S("quote"), list(S("A"), S("B"))) {
 		t.Error("quoted list")
 	}
-	if readStr("234") != Number(234) {
+	if ReadStr("234") != Number(234) {
 		t.Error("Read number")
 	}
-	if readStr("-234") != Number(-234) {
+	if ReadStr("-234") != Number(-234) {
 		t.Error("Read negative number")
 	}
-	if readStr("0") != Number(0) {
+	if ReadStr("0") != Number(0) {
 		t.Error("Read 0")
 	}
 }
 
 func TestReadSpace(t *testing.T) {
-	if readStr("(FOO\tBAR \t\n BAZ)") != list(S("FOO"), S("BAR"), S("BAZ")) {
+	if ReadStr("(FOO\tBAR \t\n BAZ)") != list(S("FOO"), S("BAR"), S("BAZ")) {
 		t.Error("ReadSpace")
 	}
 }
 
 func TestArithmetic(t *testing.T) {
-	if eval(list(S("add"), Number(3), Number(5)), env) != Number(8) {
+	if Eval(list(S("add"), Number(3), Number(5)), env) != Number(8) {
 		t.Error("add 3 5")
 	}
-	if eval(list(S("sub"), Number(3), Number(5)), env) != Number(-2) {
+	if Eval(list(S("sub"), Number(3), Number(5)), env) != Number(-2) {
 		t.Error("sub 3 5")
 	}
-	if eval(list(S("lt"), Number(3), Number(5)), env) != TRUE {
+	if Eval(list(S("lt"), Number(3), Number(5)), env) != TRUE {
 		t.Error("lt 3 5")
 	}
-	if eval(readStr("(add a b)"), readStr("((a 3) (b 5))")) != Number(8) {
+	if Eval(ReadStr("(add a b)"), ReadStr("((a 3) (b 5))")) != Number(8) {
 		t.Error("add a b")
 	}
 }
 
 func TestWrite(t *testing.T) {
-	if toStr(readStr("3")) != "3" {
-		t.Error("write 3", toStr(readStr("3")))
+	if WriteStr(ReadStr("3")) != "3" {
+		t.Error("write 3", WriteStr(ReadStr("3")))
 	}
-	if toStr(readStr("(FOO 3 (7 9))")) != "(FOO 3 (7 9))" {
+	if WriteStr(ReadStr("(FOO 3 (7 9))")) != "(FOO 3 (7 9))" {
 		t.Error("write list")
 	}
 }
@@ -313,7 +313,7 @@ func TestLambdaProg(t *testing.T) {
        )))
 (main (lambda () (f 10 0)))
 )`
-	r := eval(readStr("(main)"), readStr(prog))
+	r := Eval(ReadStr("(main)"), ReadStr(prog))
 	if r != Number(20) {
 		t.Error("lambda prog")
 	}
@@ -328,7 +328,7 @@ func TestLambdaFib(t *testing.T) {
        )))
 (main (lambda () (fib 0 1 10)))
 )`
-	r := eval(readStr("(main)"), readStr(prog))
+	r := Eval(ReadStr("(main)"), ReadStr(prog))
 	if r != Number(55) {
 		t.Error("lambda fib")
 	}

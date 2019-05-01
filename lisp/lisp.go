@@ -1,4 +1,4 @@
-package golisp
+package lisp
 
 import (
 	"fmt"
@@ -195,8 +195,9 @@ func pair(x, y Value) Value {
 	}
 }
 
-/* Eval -- the core lisp interpretation function */
-func eval(e, a Value) Value {
+/* Eval -- the core lisp interpretation function
+ * evaluate the expression e in the context of the environment e */
+func Eval(e, a Value) Value {
 	//fmt.Println("EVAL:", toStr(e), "ENV:", toStr(a))
 	if isTrue(atom(e)) {
 		switch e.(type) {
@@ -209,38 +210,38 @@ func eval(e, a Value) Value {
 		if isTrue(eq(car(e), Symbol("quote"))) {
 			return cadr(e)
 		} else if isTrue(eq(car(e), Symbol("atom"))) {
-			return atom(eval(cadr(e), a))
+			return atom(Eval(cadr(e), a))
 		} else if isTrue(eq(car(e), Symbol("eq"))) {
-			return eq(eval(cadr(e), a), eval(caddr(e), a))
+			return eq(Eval(cadr(e), a), Eval(caddr(e), a))
 		} else if isTrue(eq(car(e), Symbol("car"))) {
-			return car(eval(cadr(e), a))
+			return car(Eval(cadr(e), a))
 		} else if isTrue(eq(car(e), Symbol("cdr"))) {
-			return cdr(eval(cadr(e), a))
+			return cdr(Eval(cadr(e), a))
 		} else if isTrue(eq(car(e), Symbol("cons"))) {
-			return cons(eval(cadr(e), a), eval(caddr(e), a))
+			return cons(Eval(cadr(e), a), Eval(caddr(e), a))
 		} else if isTrue(eq(car(e), Symbol("cond"))) {
 			return evcon(cdr(e), a)
 		} else if isTrue(eq(car(e), Symbol("add"))) {
-			return add(eval(cadr(e), a), eval(caddr(e), a))
+			return add(Eval(cadr(e), a), Eval(caddr(e), a))
 		} else if isTrue(eq(car(e), Symbol("sub"))) {
-			return sub(eval(cadr(e), a), eval(caddr(e), a))
+			return sub(Eval(cadr(e), a), Eval(caddr(e), a))
 		} else if isTrue(eq(car(e), Symbol("lt"))) {
-			return lt(eval(cadr(e), a), eval(caddr(e), a))
+			return lt(Eval(cadr(e), a), Eval(caddr(e), a))
 		} else {
-			return eval(cons(assoc(car(e), a), cdr(e)), a)
+			return Eval(cons(assoc(car(e), a), cdr(e)), a)
 		}
 	} else if isTrue(eq(caar(e), Symbol("label"))) {
-		return eval(cons(caddar(e), cdr(e)),
+		return Eval(cons(caddar(e), cdr(e)),
 			cons(list(cadar(e), car(e)), a))
 	} else if isTrue(eq(caar(e), Symbol("lambda"))) {
-		return eval(caddar(e), append(pair(cadar(e), evlis(cdr(e), a)), a))
+		return Eval(caddar(e), append(pair(cadar(e), evlis(cdr(e), a)), a))
 	}
-	panic(fmt.Sprint("eval: invalid construct:", e))
+	panic(fmt.Sprint("Eval: invalid construct:", e))
 }
 
 func evcon(c, a Value) Value {
-	if isTrue(not(null(eval(caar(c), a)))) {
-		return eval(cadar(c), a)
+	if isTrue(not(null(Eval(caar(c), a)))) {
+		return Eval(cadar(c), a)
 	} else {
 		return evcon(cdr(c), a)
 	}
@@ -250,7 +251,7 @@ func evlis(m, a Value) Value {
 	if isTrue(null(m)) {
 		return NIL
 	} else {
-		return cons(eval(car(m), a), evlis(cdr(m), a))
+		return cons(Eval(car(m), a), evlis(cdr(m), a))
 	}
 }
 
@@ -341,7 +342,7 @@ func readList(rdr io.ByteScanner) Value {
 			continue
 		}
 		rdr.UnreadByte()
-		v := read(rdr)
+		v := Read(rdr)
 		r = cons(v, r)
 	}
 }
@@ -355,19 +356,20 @@ func reverse(l Value) Value {
 	return r
 }
 
-func read(rdr io.ByteScanner) Value {
+/* Read a value from an io.ByteScanner */
+func Read(rdr io.ByteScanner) Value {
 	for {
 		c, err := rdr.ReadByte()
 		//fmt.Println("read", c, err)
 		if err != nil {
-			panic("read")
+			panic("Read")
 		}
 		if c == '(' {
 			return reverse(readList(rdr))
 		} else if isWhiteSpace(c) {
 			continue
 		} else if c == '\'' {
-			return list(Symbol("quote"), read(rdr))
+			return list(Symbol("quote"), Read(rdr))
 		} else if c == '-' || (c >= '0' && c <= '9') {
 			rdr.UnreadByte()
 			return readNum(rdr)
@@ -378,15 +380,16 @@ func read(rdr io.ByteScanner) Value {
 	}
 }
 
-func readStr(s string) Value {
-	return read(strings.NewReader(s))
+/* Convert a string to a Value */
+func ReadStr(s string) Value {
+	return Read(strings.NewReader(s))
 }
 
 func writeList(w io.Writer, p Value) {
 	if p == NIL {
 		return
 	} else {
-		write(w, car(p))
+		Write(w, car(p))
 		if cdr(p) != NIL {
 			fmt.Fprint(w, " ")
 		}
@@ -394,7 +397,8 @@ func writeList(w io.Writer, p Value) {
 	}
 }
 
-func write(w io.Writer, v Value) {
+/* Write Value v to an io.Writer */
+func Write(w io.Writer, v Value) {
 	switch t := v.(type) {
 	case Pair:
 		fmt.Fprint(w, "(")
@@ -409,8 +413,9 @@ func write(w io.Writer, v Value) {
 	}
 }
 
-func toStr(v Value) string {
+/* Convert Value v to a string */
+func WriteStr(v Value) string {
 	var b strings.Builder
-	write(&b, v)
+	Write(&b, v)
 	return b.String()
 }
