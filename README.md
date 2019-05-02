@@ -2,6 +2,21 @@
 
 Building a simple LISP in go, just for fun.
 
+## Example of pure "McCarthy LISP 1.0"
+
+This LISP as specified (in Paul Graham's paper 
+["The Roots of Lisp"](http://www.paulgraham.com/rootsoflisp.html) )
+has no numbers.  But you can implement them using symbolic computations.
+Example of this is examples/simplefib.lsp.  Here numbers are represented
+by lists of length equal to the number to be represented.
+
+    cmd/golisp/golisp --debug --envfile examples/simplefib.lsp "(fib '() '(1) '(1 1 1 1 1 1 1 1))"
+
+This will compute the 8th fibonacci number (to get a different fib number
+set the length of the last argument to longer or shorter.)
+
+## Interesting observation on golang interface values
+
 Interesting thing learned: Recursive go interfaces have a
 recursive notion of equality.   This means that in my
 implementation of LISP, list1 == list2 checks the full 
