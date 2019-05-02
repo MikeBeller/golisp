@@ -30,6 +30,12 @@ func (Pair) IsType()   {}
 var NIL = Nil(struct{}{})
 var TRUE = Symbol("t")
 
+var debug bool = false
+
+func Debug(d bool) {
+	debug = d
+}
+
 /*
  * Basic primitives of lisp are:
  *  quote, atom, eq, car, cdr, cons, cond
@@ -198,7 +204,9 @@ func pair(x, y Value) Value {
 /* Eval -- the core lisp interpretation function
  * evaluate the expression e in the context of the environment e */
 func Eval(e, a Value) Value {
-	//fmt.Println("EVAL:", toStr(e), "ENV:", toStr(a))
+	if debug {
+		fmt.Println("EVAL:", WriteStr(e), "ENV:", WriteStr(a))
+	}
 	if isTrue(atom(e)) {
 		switch e.(type) {
 		case Number:

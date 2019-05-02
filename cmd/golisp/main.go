@@ -1,24 +1,37 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/mikebeller/golisp/lisp"
 	"io/ioutil"
 	"log"
-	"os"
 )
 
 func main() {
-	envStr, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		log.Fatal(err)
+	dbgPtr := flag.Bool("debug", false, "Enable debug printing")
+	flag.Parse()
+
+	if *dbgPtr {
+		lisp.Debug(true)
 	}
 
-	var progStr = "(main)"
-	if len(os.Args) > 1 {
-		progStr = os.Args[1]
+	if len(flag.Args()) < 1 {
+		log.Fatal("Usage: golisp [--debug] expr [envfile]")
+	}
+	progStr := flag.Args()[0]
+
+	envStr := "()"
+
+	if len(flag.Args()) > 1 {
+		envFile := flag.Args()[1]
+		envBytes, err := ioutil.ReadFile(envFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		envStr = string(envBytes)
 	}
 
-	v := lisp.Eval(lisp.ReadStr(progStr), lisp.ReadStr(string(envStr)))
+	v := lisp.Eval(lisp.ReadStr(progStr), lisp.ReadStr(envStr))
 	fmt.Println(lisp.WriteStr(v))
 }
