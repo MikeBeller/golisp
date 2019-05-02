@@ -2,7 +2,9 @@
  (zero ())
  (one (1))
  (and (lambda (x y)
-        (cond (x (cond (y 't) ('t '()))))))
+        (cond
+          (x (cond (y 't) ('t '())))
+          ('t '()))))
  (adds (lambda (a b)
          (cond ((atom b) a)
                ('t (cons (car b) (adds (cdr b) a))))))
@@ -20,7 +22,7 @@
           ((equals n zero) a)
           ('t (fib b (adds a b) (subs n one)))
           )))
- (main (lambda () (fib zero one '(1 1 1 1 1))))
+ (main (lambda () (fib zero one '(1 1 1 1 1 1 1 1))))
  )
 
 
